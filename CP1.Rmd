@@ -1,0 +1,145 @@
+---
+title: "Practical Machine Learning Course Project"
+author: "YZZHENG"
+date: "Saturday, March 21, 2015"
+output: html_document
+---
+
+### Get and set to the working directory
+
+```{r}
+getwd()
+setwd("C:/GitH/Practical Machine Learning")
+dir()
+```
+
+### Read files into R and define the NA strings
+
+```{r}
+training <- read.csv("pml-training.csv", na.strings=c("NA","#DIV/0!", " "))
+testing <- read.csv("pml-testing.csv", na.strings=c("NA","#DIV/0!", " "))
+dim(training); dim(testing)
+```
+
+### Find the columns which contain the "NA"
+
+```{r}
+na_cols1 <- sapply(training, function(x)any(is.na(x)))
+na_cols2 <- sapply(testing, function(x)any(is.na(x)))
+table(na_cols1)
+table(na_cols2)
+```
+
+### Remove the "NA" containing columns
+
+```{r}
+training1 <- training[, !(na_cols1)]
+testing1 <- testing[, !(na_cols2)]
+dim(training1); dim(testing1)
+str(training1)
+str(testing1)
+```
+
+### Load caret package and further remove the first column from the training data, the first and last columns from the test dataset
+
+```{r}
+library(caret)
+training1 <- training1[, -1]
+testing1 <- testing1[, -c(1, 60)]
+```
+
+### Remove the near zero variance predictors
+
+```{r}
+nzv1 <- nearZeroVar(training1, saveMetrics=TRUE)
+nzv2 <- nearZeroVar(testing1, saveMetrics=TRUE)
+nzv1; nzv2
+training1 <- training1[, -5]
+testing1 <- testing1[, -5]
+```
+
+### Create training and validation sets in training data for cross-validation
+
+```{r}
+inTrain <- createDataPartition(y=training1$classe, p=0.7, list=FALSE)
+training1a <- training1[inTrain, ]
+training1b <- training1[-inTrain, ]
+dim(training1a); dim(training1b)
+```
+
+### Build models, first try random forest model algorithm
+
+ ```{r}
+library(randomForest)
+mode1 <- randomForest(classe ~ ., data=training1a)
+varImpPlot(mode1)
+```
+
+### Cross validate using the training validation data set
+
+```{r}
+pred1 <- predict(mode1, training1b)
+confusionMatrix(training1b$classe, pred1)
+```
+* The model 1 give accuracy 99.99%, indicating very small expecting out of sample error. But "predict(mode1, testing1)" model cannot predict the real testing data samples due to the different column types between training and testing datasets.
+
+### Try to find the different types of training and testing data sets
+
+```{r}
+table(sapply(training1, class))
+table(sapply(testing1, class))
+```
+
+### Fix the column class difference between training and testing data sets by applying the column head from training data to testing data set.
+
+```{r}
+newFrame <- head(training1, 1)
+newFrame <- newFrame[, -length(colnames(newFrame))]
+newTesting1 <- rbind(newFrame, testing1)
+str(newTesting1)
+dim(training1); dim(testing1); dim(newTesting1)
+newTesting1 <- newTesting1[-1, ]
+```
+
+### Predict the testing data
+
+```{r}
+predFinal1 <- predict(mode1, newTesting1)
+predFinal1
+```
+
+### Try the second model by linear discrination analysis algorithm
+
+```{r, warning=FALSE}
+library(MASS)
+mode2 <- train(classe ~ ., method="lda", data=training1a)
+pred2 <- predict(mode2, training1b)
+confusionMatrix(training1b$classe, pred2)
+predFinal2 <- predict(mode2, newTesting1)
+predFinal2
+```
+*The model 2 give accuracy 86.2%, indicating ~14% expecting out of sample error.
+
+### Find how agree each other of the two models
+
+```{r}
+table(predFinal1, predFinal2)
+```
+
+### Write each answer for each sample in the testing dataset using mode1 for submission
+
+```{r}
+predFinal1 <- as.character(predFinal1)
+str(predFinal1)
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+dir.create("results")
+setwd("./results")
+pml_write_files(predFinal1)
+dir()
+```
