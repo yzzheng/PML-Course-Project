@@ -81,7 +81,7 @@ varImpPlot(mode1)
 pred1 <- predict(mode1, training1b)
 confusionMatrix(training1b$classe, pred1)
 ```
-* The model 1 give accuracy 99.99%, indicating very small expecting out of sample error. But "predict(mode1, testing1)" model cannot predict the real testing data samples due to the different column types between training and testing datasets.
+#### The model 1 give accuracy 99.99%, indicating very small expecting out of sample error. But "predict(mode1, testing1)" model cannot predict the real testing data samples due to the different column types between training and testing datasets.
 
 ### Try to find the different types of training and testing data sets
 
@@ -118,7 +118,7 @@ confusionMatrix(training1b$classe, pred2)
 predFinal2 <- predict(mode2, newTesting1)
 predFinal2
 ```
-*The model 2 give accuracy 86.2%, indicating ~14% expecting out of sample error.
+#### The model 2 give accuracy 86.2%, indicating ~14% expecting out of sample error.
 
 ### Find how agree each other of the two models
 
