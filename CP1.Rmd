@@ -9,7 +9,7 @@ output: html_document
 
 ```{r}
 getwd()
-setwd("C:/GitH/Practical Machine Learning")
+setwd("C:/GitH/Practical Machine Learning/PML-Course-Project")
 dir()
 ```
 
