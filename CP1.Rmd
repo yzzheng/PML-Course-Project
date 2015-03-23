@@ -2,7 +2,7 @@
 title: "Practical Machine Learning Course Project"
 author: "YZZHENG"
 date: "Saturday, March 21, 2015"
-output: html_document
+output: pdf_document
 ---
 
 ### Get and set to the working directory
